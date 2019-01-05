@@ -1,6 +1,7 @@
 package com.emmanuelhmar.booklistingapp;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 public class QueryUtils {
 
@@ -51,6 +54,7 @@ public class QueryUtils {
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
 
+            Log.i("LOG: ", urlConnection.getResponseCode() + " CODE");
             if (urlConnection.getResponseCode() == 200) {
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
@@ -107,26 +111,32 @@ public class QueryUtils {
 
 //               Get the title of the book
                String title = volumeInfo.optString("title");
+               Log.i("LOG", " authors: " + title);
 
 //               Get the authors of the book
                ArrayList<String> authors = new ArrayList<>();
 
 //               Create and get the authors
                JSONArray authorArrays = volumeInfo.optJSONArray("authors");
+               Log.i("LOG", " authors: " + authorArrays);
 
 //               Loop thru the authors and add them to the list
-               for (int j = 0; j < authorArrays.length(); j++) {
-                   authors.add(authorArrays.getString(j));
-               }
+//               for (int j = 0; j < authorArrays.length(); j++) {
+//                   authors.add(authorArrays.getString(j));
+//               }
+               authors.add(authorArrays.optString(0));
 
-               int publishedDate = currentBook.getInt("publishedDate");
+               int publishedDate = volumeInfo.getInt("publishedDate");
+               Log.i("LOG", " authors: " + publishedDate);
 
-               JSONObject salesInfo = currentBook.getJSONObject("salesInfo");
+               JSONObject saleInfo = currentBook.getJSONObject("saleInfo");
 
-               JSONObject listPrice = salesInfo.getJSONObject("listPrice");
+               JSONObject listPrice = saleInfo.getJSONObject("listPrice");
 
                double listedPrice = listPrice.getDouble("amount");
 
+               Log.i("LOG", "extractFeaturesFromBook: LOG" + books);
+               Log.i("LOG", "test: " + listedPrice);
                books.add(new Book(title, authors, publishedDate, listedPrice));
 
            }
@@ -134,6 +144,8 @@ public class QueryUtils {
        } catch (JSONException e) {
            e.printStackTrace();
        }
+
+        Log.i(TAG, "extractFeaturesFromBook: " + books + " LOG");
 
         return books;
 

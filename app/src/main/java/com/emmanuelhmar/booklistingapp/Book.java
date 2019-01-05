@@ -27,4 +27,7 @@ public class Book {
         return publishedDate;
     }
 
+    public double getListedPrice() {
+        return listedPrice;
+    }
 }
