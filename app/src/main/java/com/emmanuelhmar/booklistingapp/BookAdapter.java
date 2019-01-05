@@ -1,5 +1,6 @@
 package com.emmanuelhmar.booklistingapp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,18 +43,19 @@ public class BookAdapter extends ArrayAdapter<Book> {
         return listItemView;
     }
 
+    @SuppressLint("SetTextI18n")
     private void setupBookView(View view, Book book) {
 
         String title = book.getTitle();
         List<String> authors = book.getAuthors();
-        int publishedDate = book.getPublishedDate();
-        double listedPrice = book.getListedPrice();
+        String publishedDate = book.getPublishedDate();
+        String listedPrice = book.getListedPrice();
 
         ButterKnife.bind(this, view);
 
-        textTitle.setText(title);
-        textAuthors.setText(authors.toString());
-        textDate.setText(String.valueOf(publishedDate));
-        textPrice.setText(String.valueOf(listedPrice));
+        textTitle.setText("Title: " + title);
+        textAuthors.setText("Authors : " + authors.toString());
+        textDate.setText("Published Date: " + publishedDate);
+        textPrice.setText("Listed price: " + listedPrice);
     }
 }

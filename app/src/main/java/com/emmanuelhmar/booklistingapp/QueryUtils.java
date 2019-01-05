@@ -55,6 +55,7 @@ public class QueryUtils {
             urlConnection.connect();
 
             Log.i("LOG: ", urlConnection.getResponseCode() + " CODE");
+//            If the responsecode is 200, then proceed to stream the data
             if (urlConnection.getResponseCode() == 200) {
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
@@ -104,10 +105,10 @@ public class QueryUtils {
 
            for (int i = 0; i < bookArray.length(); i++) {
 //               Get an earthquake at position i
-               JSONObject currentBook = bookArray.getJSONObject(i);
+               JSONObject currentBook = bookArray.optJSONObject(i);
 
 //               Get the volumeInfo from the book
-               JSONObject volumeInfo = currentBook.getJSONObject("volumeInfo");
+               JSONObject volumeInfo = currentBook.optJSONObject("volumeInfo");
 
 //               Get the title of the book
                String title = volumeInfo.optString("title");
@@ -120,23 +121,30 @@ public class QueryUtils {
                JSONArray authorArrays = volumeInfo.optJSONArray("authors");
                Log.i("LOG", " authors: " + authorArrays);
 
-//               Loop thru the authors and add them to the list
-//               for (int j = 0; j < authorArrays.length(); j++) {
-//                   authors.add(authorArrays.getString(j));
-//               }
-               authors.add(authorArrays.optString(0));
+               for (int j = 0; j < authorArrays.length(); j++) {
+                   authors.add(authorArrays.optString(j));
+               }
 
-               int publishedDate = volumeInfo.getInt("publishedDate");
+               String publishedDate = volumeInfo.optString("publishedDate");
                Log.i("LOG", " authors: " + publishedDate);
 
-               JSONObject saleInfo = currentBook.getJSONObject("saleInfo");
+//               Switch to the saleInfo object and get the sales price
+               JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
 
-               JSONObject listPrice = saleInfo.getJSONObject("listPrice");
+               String saleability = saleInfo.optString("saleability");
 
-               double listedPrice = listPrice.getDouble("amount");
+               String listedPrice = "Not for Sale";
+
+               if (saleability.equals("FOR_SALE")) {
+                   JSONObject listPrice = saleInfo.optJSONObject("listPrice");
+                   listedPrice = "$" + listPrice.optString("amount");
+               }
+
+
 
                Log.i("LOG", "extractFeaturesFromBook: LOG" + books);
                Log.i("LOG", "test: " + listedPrice);
+
                books.add(new Book(title, authors, publishedDate, listedPrice));
 
            }
