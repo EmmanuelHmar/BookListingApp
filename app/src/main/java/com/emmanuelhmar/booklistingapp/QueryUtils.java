@@ -31,7 +31,12 @@ public class QueryUtils {
         }
 
         assert url != null;
-        String jsonResponse = makeHttp(url);
+        String jsonResponse = null;
+        try {
+            jsonResponse = makeHttp(url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return extractFeaturesFromBook(jsonResponse);
 
@@ -40,7 +45,7 @@ public class QueryUtils {
     }
 
 //    Get a connection to the HTTP
-    private static String makeHttp(URL url) {
+    private static String makeHttp(URL url) throws IOException {
         String jsonResponse = null;
 
         HttpURLConnection urlConnection = null;
@@ -62,8 +67,18 @@ public class QueryUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
 
+
+        Log.i(TAG, "makeHttp: JSON" + jsonResponse);
         return jsonResponse;
     }
 
@@ -89,8 +104,10 @@ public class QueryUtils {
 
     private static List<Book> extractFeaturesFromBook(String jsonResponse) {
 
+        Log.i(TAG, "extractFeaturesFromBook: JSONRESPONSE" + jsonResponse);
+
 //        Check if the json parameter is empty
-        if (TextUtils.isEmpty(jsonResponse)) {
+        if (TextUtils.isEmpty(jsonResponse) || jsonResponse.isEmpty()) {
             return null;
         }
 
@@ -100,10 +117,19 @@ public class QueryUtils {
 //           Create a JSONobject from the JSON string
            JSONObject baseJsonResponse = new JSONObject(jsonResponse);
 
+//           Check the totalNumber of query's found
+           int totalItems = baseJsonResponse.optInt("totalItems");
+
+           if (totalItems <= 0) {
+               return null;
+           }
+
+
+
 //           Extract the JSONArray associated with the key "items"
            JSONArray bookArray = baseJsonResponse.optJSONArray("items");
 
-           for (int i = 0; i < bookArray.length(); i++) {
+           for (int i = 0; i < bookArray.length() && i < totalItems; i++) {
 //               Get an earthquake at position i
                JSONObject currentBook = bookArray.optJSONObject(i);
 
@@ -112,7 +138,7 @@ public class QueryUtils {
 
 //               Get the title of the book
                String title = volumeInfo.optString("title");
-               Log.i("LOG", " authors: " + title);
+               Log.i("LOG", " title: " + title);
 
 //               Get the authors of the book
                ArrayList<String> authors = new ArrayList<>();
@@ -121,8 +147,10 @@ public class QueryUtils {
                JSONArray authorArrays = volumeInfo.optJSONArray("authors");
                Log.i("LOG", " authors: " + authorArrays);
 
-               for (int j = 0; j < authorArrays.length(); j++) {
-                   authors.add(authorArrays.optString(j));
+               if (authorArrays != null) {
+                   for (int j = 0; j < authorArrays.length(); j++) {
+                       authors.add(authorArrays.optString(j));
+                   }
                }
 
                String publishedDate = volumeInfo.optString("publishedDate");
